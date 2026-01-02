@@ -1550,705 +1550,58 @@ Content-Type: application/json
 
 ## 6. Tickets de Trabajo
 
+A continuación se muestran 3 ejemplos de tickets de trabajo del proyecto UNLOKD, organizados por tipo (Backend, Frontend, Base de Datos). Cada ticket contiene toda la información necesaria para su implementación y está vinculado directamente con su issue correspondiente en GitHub.
+
 ---
 
 ### Ticket 1: Backend - UNLOKD-002
 
-##### [UNLOKD-002] Implementar Módulo de Autenticación (Registro + Login + JWT)
+**[UNLOKD-002] Implementar Módulo de Autenticación (Registro + Login + JWT)**
 
-**Tipo**
-- [x] Feature
+- **Tipo:** Feature
+- **Épica:** EPIC-1: Fundación - Autenticación y Usuarios
+- **Prioridad:** P0 - Blocker
+- **Sprint:** Sprint 1 (06/01 - 19/01)
+- **Story Points:** 8
 
-**Épica**
-EPIC-1: Fundación - Autenticación y Usuarios
-
-**Prioridad**
-- [x] P0 - Blocker
-
-**Sprint**
-Sprint 1 (06/01 - 19/01)
-
-**Estimación**
-Story Points: 8
-
-**Descripción**
+**Descripción:**  
 Implementar el módulo de autenticación completo que permita a usuarios registrarse con email/contraseña y hacer login obteniendo un JWT válido. Incluye hash seguro de contraseñas con bcrypt, validación de credenciales, rate limiting y guards de protección.
 
-**Historia de Usuario Relacionada**
-- HU-001: Registro de usuario
-- HU-002: Login de usuario y obtención de JWT
-
-**Caso de Uso Relacionado**
-- UC-001: Registrar Cuenta
-- UC-002: Iniciar Sesión
-
-**Criterios de Aceptación**
-- [ ] Endpoint `POST /api/v1/auth/register` implementado y funcional
-- [ ] Endpoint `POST /api/v1/auth/login` implementado y funcional
-- [ ] Validación de email formato correcto con `class-validator`
-- [ ] Hash de contraseña con bcrypt factor 10+ antes de almacenar
-- [ ] Generación de JWT con payload `{userId, email, username}` y expiración 24h
-- [ ] JwtAuthGuard implementado para proteger rutas autenticadas
-- [ ] JwtStrategy configurada para validar JWT en requests
-- [ ] Rate limiting: máximo 5 intentos login por IP cada 15min (Redis)
-- [ ] Mensajes de error genéricos ("Credenciales inválidas") para no revelar qué falló
-- [ ] Tests unitarios con cobertura > 80%
-- [ ] Tests E2E del flujo completo registro → login
-
-**Tareas Técnicas**
-- [ ] Crear módulo `auth/` con controller, service
-- [ ] Implementar `register(email, password)` en AuthService
-- [ ] Implementar `login(email, password)` en AuthService
-- [ ] Configurar JwtModule con secret y expiración
-- [ ] Crear JwtStrategy para Passport
-- [ ] Crear JwtAuthGuard usando `@nestjs/passport`
-- [ ] Implementar rate limiting con Redis (clave: `login:attempts:{ip}`)
-- [ ] Crear DTOs: RegisterDto, LoginDto, AuthResponseDto
-- [ ] Agregar validaciones con `class-validator`
-- [ ] Escribir tests unitarios (AuthService)
-- [ ] Escribir tests E2E (auth.e2e-spec.ts)
-
-**Dependencias**
-- UNLOKD-001: Setup proyecto
-
-**Definición de Done (DoD)**
-- [ ] Código implementado y funcional
-- [ ] Tests unitarios escritos y pasando (cobertura > 80%)
-- [ ] Tests E2E escritos y pasando
-- [ ] Code review aprobado por al menos 1 reviewer
-- [ ] Sin linter errors ni warnings críticos
-- [ ] Documentación actualizada (README, comentarios código)
-- [ ] Merge a rama `develop` exitoso
-
-**Endpoints API**
-- POST `/api/v1/auth/register` → `{userId, username, email}`
-- POST `/api/v1/auth/login` → `{accessToken, user: {id, email, username}}`
-
-**Tablas DB**
-- USERS (usado por UsersRepository)
-
-**Consideraciones Técnicas**
-
-**Módulos NestJS**
-- `src/modules/auth/` (auth.module.ts, auth.controller.ts, auth.service.ts)
-- `src/common/guards/` (jwt-auth.guard.ts)
-- `src/common/strategies/` (jwt.strategy.ts)
-
-**Principios SOLID**
-- **SRP**: AuthService solo maneja lógica de autenticación, UsersService maneja usuarios
-- **DIP**: Inyección de dependencias de UsersService y JwtService en AuthService
-- **OCP**: Strategy pattern con Passport permite agregar nuevas estrategias de auth
-
-**Patrones de Diseño**
-- **Strategy Pattern**: Passport strategies para diferentes métodos de autenticación
-- **Repository Pattern**: UsersRepository abstrae acceso a datos
-
-**Tests**
-
-```typescript
-// Unit test ejemplo
-describe('AuthService', () => {
-  it('should hash password before storing', async () => {
-    const password = 'test123';
-    const hash = await authService.hashPassword(password);
-    expect(hash).not.toBe(password);
-    expect(await bcrypt.compare(password, hash)).toBe(true);
-  });
-
-  it('should generate valid JWT on login', async () => {
-    const user = { id: '123', email: 'test@example.com', username: 'test' };
-    const token = await authService.login(user);
-    expect(token.accessToken).toBeDefined();
-    const decoded = jwt.verify(token.accessToken, process.env.JWT_SECRET);
-    expect(decoded.userId).toBe(user.id);
-  });
-});
-
-// E2E test ejemplo
-describe('Auth E2E', () => {
-  it('POST /auth/register should create user', () => {
-    return request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({
-        email: 'test@example.com',
-        password: 'password123',
-        passwordConfirm: 'password123'
-      })
-      .expect(201)
-      .expect((res) => {
-        expect(res.body.userId).toBeDefined();
-        expect(res.body.email).toBe('test@example.com');
-      });
-  });
-
-  it('POST /auth/login should return JWT', () => {
-    return request(app.getHttpServer())
-      .post('/api/v1/auth/login')
-      .send({
-        email: 'test@example.com',
-        password: 'password123'
-      })
-      .expect(200)
-      .expect((res) => {
-        expect(res.body.accessToken).toBeDefined();
-      });
-  });
-});
-```
-
-**Notas**
-- Usar variables de entorno para JWT_SECRET (nunca hardcodear)
-- Implementar refresh tokens en versiones futuras
-- Considerar agregar OAuth (Google, Facebook) en post-MVP
-- Documentar endpoints con Swagger/OpenAPI
-
-**Labels**
-`auth`, `backend`, `nestjs`, `jwt`, `sprint-1`, `p0-blocker`
+**Ver detalles completos en GitHub:** [Issue #2](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/2)
 
 ---
 
 ### Ticket 2: Frontend - UNLOKD-019
 
-##### [UNLOKD-019] Implementar Previsualización Difuminada en Frontend
+**[UNLOKD-019] Implementar Previsualización Difuminada en Frontend**
 
-**Tipo**
-- [x] Feature
+- **Tipo:** Feature
+- **Épica:** EPIC-4: Multimedia, Notificaciones y UX
+- **Prioridad:** P1 - High
+- **Sprint:** Sprint 4 (17/02 - 02/03)
+- **Story Points:** 5
 
-**Épica**
-EPIC-4: Multimedia, Notificaciones y UX
+**Descripción:**  
+Implementar componentes React para mostrar mensajes bloqueados con estilos visuales atractivos, iconografía consistente, efecto blur en contenido multimedia, e indicadores claros según el tipo de condición (TIME, PASSWORD, QUIZ).
 
-**Prioridad**
-- [x] P1 - High
-
-**Sprint**
-Sprint 4 (17/02 - 02/03)
-
-**Estimación**
-Story Points: 5
-
-**Descripción**
-Implementar componentes React para mostrar mensajes bloqueados con estilos visuales atractivos, iconografía consistente, efecto blur en contenido multimedia, e indicadores claros según el tipo de condición (TIME, PASSWORD, QUIZ). La UI debe generar curiosidad y anticipación sin frustrar al usuario.
-
-**Historia de Usuario Relacionada**
-- HU-012: Ver previsualización difuminada de mensaje bloqueado
-
-**Caso de Uso Relacionado**
-- UC-012: Ver Previsualización Bloqueada
-
-**Criterios de Aceptación**
-- [ ] Componente `<LockedMessagePreview />` implementado y funcional
-- [ ] Estilos visuales distintivos (gradiente, borde especial, icono 🔒 prominente)
-- [ ] Efecto blur CSS para multimedia (filter: blur(20px))
-- [ ] Indicadores específicos por tipo de condición:
-  - TIME: "🔒 Bloqueado hasta DD/MM/YYYY HH:MM" + contador regresivo
-  - PASSWORD: "🔒 Protegido con contraseña (X intentos restantes)"
-  - QUIZ: "❓ Responde la pregunta para desbloquear"
-- [ ] Botón "Desbloquear" con estados habilitado/deshabilitado según condición
-- [ ] Animaciones sutiles que llamen la atención sin molestar
-- [ ] Diseño responsive (móvil, tablet, desktop)
-- [ ] Accesible (soporte para lectores de pantalla, navegación por teclado)
-- [ ] Soporte para modo claro y modo oscuro
-- [ ] Tests de componentes con Jest + React Testing Library
-
-**Tareas Técnicas**
-- [ ] Crear componente `LockedMessagePreview.tsx` en `src/components/messages/`
-- [ ] Crear estilos CSS/SCSS con gradientes y blur en `LockedMessagePreview.module.css`
-- [ ] Implementar renderizado condicional según `conditionType` (TIME, PASSWORD, QUIZ)
-- [ ] Crear sub-componentes:
-  - `<TimeConditionIndicator />` con contador regresivo
-  - `<PasswordConditionIndicator />` con intentos restantes
-  - `<QuizConditionIndicator />` con icono de pregunta
-- [ ] Implementar animaciones CSS (@keyframes para pulse, attention)
-- [ ] Integrar con timeline de mensajes (`MessageList.tsx`)
-- [ ] Agregar props TypeScript con interfaces:
-  - `message: Message`
-  - `conditionType: ConditionType`
-  - `conditionData: ConditionData`
-  - `onUnlockClick: () => void`
-- [ ] Escribir tests de componente (render, interacción, estados)
-- [ ] Validar accesibilidad con axe-core
-- [ ] Validar responsive en diferentes viewports
-
-**Dependencias**
-- UNLOKD-007: Módulo de mensajes (backend debe retornar preview data)
-- UNLOKD-012: Condición TIME (para integrar countdown)
-
-**Definición de Done (DoD)**
-- [ ] Componente implementado y funcional
-- [ ] Estilos aplicados y responsive verificado
-- [ ] Tests unitarios pasando
-- [ ] Code review aprobado
-- [ ] Sin warnings de accesibilidad
-- [ ] Documentación de componente actualizada (Storybook o comentarios)
-- [ ] Merge a rama `develop`
-
-**Consideraciones Técnicas**
-
-**Componentes React**
-
-```typescript
-// LockedMessagePreview.tsx
-interface LockedMessagePreviewProps {
-  message: Message;
-  conditionType: 'TIME' | 'PASSWORD' | 'QUIZ';
-  conditionData: {
-    availableFrom?: string;
-    attemptsLeft?: number;
-    maxAttempts?: number;
-  };
-  onUnlockClick: () => void;
-}
-
-export const LockedMessagePreview: React.FC<LockedMessagePreviewProps> = ({
-  message,
-  conditionType,
-  conditionData,
-  onUnlockClick
-}) => {
-  return (
-    <div className={styles.lockedMessage}>
-      <div className={styles.lockIconContainer}>
-        <LockIcon className={styles.lockIcon} />
-      </div>
-      
-      {conditionType === 'TIME' && (
-        <TimeConditionIndicator availableFrom={conditionData.availableFrom} />
-      )}
-      
-      {conditionType === 'PASSWORD' && (
-        <PasswordConditionIndicator 
-          attemptsLeft={conditionData.attemptsLeft}
-          maxAttempts={conditionData.maxAttempts}
-        />
-      )}
-      
-      {message.hasMedia && (
-        <BlurredThumbnail src={message.thumbnailUrl} />
-      )}
-      
-      <button 
-        className={styles.unlockButton}
-        onClick={onUnlockClick}
-        disabled={!canUnlock(conditionType, conditionData)}
-      >
-        Desbloquear
-      </button>
-    </div>
-  );
-};
-```
-
-**Estilos CSS**
-
-```css
-/* LockedMessagePreview.module.css */
-.lockedMessage {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: 2px solid #667eea;
-  border-radius: 12px;
-  padding: 20px;
-  position: relative;
-  animation: subtle-pulse 2s infinite;
-}
-
-.lockIcon {
-  font-size: 48px;
-  animation: lock-shake 0.5s ease-in-out;
-}
-
-.blurredThumbnail {
-  filter: blur(20px);
-  opacity: 0.7;
-  transition: filter 0.3s ease;
-}
-
-@keyframes subtle-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-}
-
-@keyframes lock-shake {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-5deg); }
-  75% { transform: rotate(5deg); }
-}
-
-/* Modo oscuro */
-@media (prefers-color-scheme: dark) {
-  .lockedMessage {
-    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-    border-color: #4a5568;
-  }
-}
-```
-
-**Tests**
-
-```typescript
-// LockedMessagePreview.test.tsx
-describe('LockedMessagePreview', () => {
-  it('renders TIME condition with countdown', () => {
-    const message = { id: '1', hasMedia: false };
-    const props = {
-      message,
-      conditionType: 'TIME' as const,
-      conditionData: { availableFrom: '2025-12-31T20:00:00Z' },
-      onUnlockClick: jest.fn()
-    };
-    
-    render(<LockedMessagePreview {...props} />);
-    
-    expect(screen.getByText(/Bloqueado hasta/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Desbloquear/i })).toBeDisabled();
-  });
-
-  it('renders PASSWORD condition with attempts left', () => {
-    const props = {
-      message: { id: '1', hasMedia: false },
-      conditionType: 'PASSWORD' as const,
-      conditionData: { attemptsLeft: 2, maxAttempts: 3 },
-      onUnlockClick: jest.fn()
-    };
-    
-    render(<LockedMessagePreview {...props} />);
-    
-    expect(screen.getByText(/2 intentos restantes/i)).toBeInTheDocument();
-  });
-
-  it('calls onUnlockClick when button clicked', () => {
-    const onUnlockClick = jest.fn();
-    const props = {
-      message: { id: '1', hasMedia: false },
-      conditionType: 'TIME' as const,
-      conditionData: { availableFrom: '2020-01-01T00:00:00Z' }, // pasado
-      onUnlockClick
-    };
-    
-    render(<LockedMessagePreview {...props} />);
-    
-    const button = screen.getByRole('button', { name: /Desbloquear/i });
-    fireEvent.click(button);
-    
-    expect(onUnlockClick).toHaveBeenCalledTimes(1);
-  });
-});
-```
-
-**Principios de Diseño**
-- **Atomic Design**: Componentes pequeños y reutilizables
-- **Composición**: Sub-componentes especializados por tipo de condición
-- **Accesibilidad**: ARIA labels, navegación por teclado, contrast ratio WCAG AA
-
-**Notas**
-- Usar CSS Modules o Styled Components para estilos scoped
-- Considerar agregar Storybook para documentar variantes del componente
-- Las animaciones deben respetar `prefers-reduced-motion`
-- El blur debe aplicarse en el cliente, no cargar imagen completa del backend
-
-**Labels**
-`frontend`, `react`, `ui`, `ux`, `sprint-4`, `p1-high`
+**Ver detalles completos en GitHub:** [Issue #19](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/19)
 
 ---
 
 ### Ticket 3: Base de Datos - UNLOKD-004
 
-##### [UNLOKD-004] Crear Migraciones de Base de Datos (USERS, CONTACTS)
+**[UNLOKD-004] Crear Migraciones de Base de Datos (USERS, CONTACTS)**
 
-**Tipo**
-- [x] Feature
+- **Tipo:** Feature
+- **Épica:** EPIC-1: Fundación - Autenticación y Usuarios
+- **Prioridad:** P0 - Blocker
+- **Sprint:** Sprint 1 (06/01 - 19/01)
+- **Story Points:** 2
 
-**Épica**
-EPIC-1: Fundación - Autenticación y Usuarios
-
-**Prioridad**
-- [x] P0 - Blocker
-
-**Sprint**
-Sprint 1 (06/01 - 19/01)
-
-**Estimación**
-Story Points: 2
-
-**Descripción**
+**Descripción:**  
 Crear el esquema Prisma completo para las tablas USERS y CONTACTS, generar las migraciones correspondientes y ejecutarlas en la base de datos MySQL. Incluye índices para optimización de consultas frecuentes y constraints para integridad referencial.
 
-**Caso de Uso Relacionado**
-- UC-001: Registrar Cuenta
-- UC-002: Iniciar Sesión
-- UC-003: Gestionar Perfil
-- UC-004: Añadir Contacto
-
-**Criterios de Aceptación**
-- [ ] Esquema Prisma `schema.prisma` definido con modelos User y Contact
-- [ ] Migración generada exitosamente con `npx prisma migrate dev`
-- [ ] Tablas creadas en MySQL con todos los campos según diseño del modelo de datos
-- [ ] Índices creados correctamente:
-  - USERS(email) → UNIQUE
-  - USERS(username) → UNIQUE
-  - CONTACTS(owner_user_id, contact_user_id) → UNIQUE compuesto
-- [ ] Foreign keys configuradas con ON DELETE CASCADE apropiado
-- [ ] Seeds opcionales para datos de prueba implementados
-- [ ] Documentación del esquema actualizada
-- [ ] Migración ejecutada en MySQL local sin errores
-
-**Tareas Técnicas**
-- [ ] Definir modelo `User` en `prisma/schema.prisma` con todos los campos:
-  - id, email, username, password_hash
-  - display_name, avatar_url, presence_status
-  - is_active, created_at, updated_at, last_login_at
-- [ ] Definir modelo `Contact` en `prisma/schema.prisma`:
-  - id, owner_user_id, contact_user_id, alias, created_at
-- [ ] Configurar relaciones entre modelos
-- [ ] Agregar índices y constraints (@@unique, @@index)
-- [ ] Generar migración: `npx prisma migrate dev --name init_users_contacts`
-- [ ] Ejecutar migración en MySQL local
-- [ ] Verificar tablas creadas con `SHOW TABLES` y `DESCRIBE`
-- [ ] Crear archivo `prisma/seed.ts` con datos de prueba (3-5 usuarios, algunos contactos)
-- [ ] Actualizar `package.json` con script `"prisma:seed": "ts-node prisma/seed.ts"`
-- [ ] Ejecutar seeds: `npm run prisma:seed`
-- [ ] Documentar esquema en README o wiki del proyecto
-
-**Dependencias**
-- UNLOKD-001: Setup proyecto (MySQL debe estar configurado y corriendo)
-
-**Definición de Done (DoD)**
-- [ ] Archivos de migración generados en `prisma/migrations/`
-- [ ] Tablas existen en MySQL con estructura correcta
-- [ ] Índices verificados con `SHOW INDEX FROM users`
-- [ ] Seeds ejecutados exitosamente
-- [ ] Comando `npx prisma studio` abre interfaz visual correctamente
-- [ ] Documentación actualizada
-- [ ] Code review aprobado
-- [ ] Merge a rama `develop`
-
-**Esquema Prisma Completo**
-
-```prisma
-// prisma/schema.prisma
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-}
-
-model User {
-  id            BigInt    @id @default(autoincrement())
-  email         String    @unique @db.VarChar(100)
-  username      String    @unique @db.VarChar(50)
-  password_hash String    @db.VarChar(255)
-  display_name  String    @db.VarChar(255)
-  avatar_url    String?   @db.VarChar(255)
-  presence_status String? @db.VarChar(20) @default("offline")
-  is_active     Boolean   @default(true)
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  last_login_at DateTime?
-
-  // Relaciones
-  chatsCreated  Chat[]    @relation("ChatCreator")
-  chatMembers   ChatMember[]
-  messagesSent  Message[] @relation("MessageSender")
-  contactsOwned Contact[] @relation("ContactOwner")
-  contactsOf    Contact[] @relation("ContactUser")
-
-  @@map("users")
-  @@index([email])
-  @@index([username])
-}
-
-model Contact {
-  id              BigInt   @id @default(autoincrement())
-  owner_user_id   BigInt
-  contact_user_id BigInt
-  alias           String?  @db.VarChar(50)
-  created_at      DateTime @default(now())
-
-  // Relaciones
-  owner   User @relation("ContactOwner", fields: [owner_user_id], references: [id], onDelete: Cascade)
-  contact User @relation("ContactUser", fields: [contact_user_id], references: [id], onDelete: Cascade)
-
-  @@unique([owner_user_id, contact_user_id])
-  @@map("contacts")
-  @@index([owner_user_id])
-  @@index([contact_user_id])
-}
-```
-
-**Script de Seeds**
-
-```typescript
-// prisma/seed.ts
-import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
-
-const prisma = new PrismaClient();
-
-async function main() {
-  console.log('🌱 Iniciando seeds...');
-
-  // Crear usuarios de prueba
-  const users = await Promise.all([
-    prisma.user.create({
-      data: {
-        email: 'alice@example.com',
-        username: 'alice',
-        password_hash: await bcrypt.hash('password123', 10),
-        display_name: 'Alice Johnson',
-        is_active: true,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'bob@example.com',
-        username: 'bob',
-        password_hash: await bcrypt.hash('password123', 10),
-        display_name: 'Bob Smith',
-        is_active: true,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'charlie@example.com',
-        username: 'charlie',
-        password_hash: await bcrypt.hash('password123', 10),
-        display_name: 'Charlie Brown',
-        is_active: true,
-      },
-    }),
-  ]);
-
-  console.log(`✅ Creados ${users.length} usuarios`);
-
-  // Crear contactos de prueba
-  const contacts = await Promise.all([
-    prisma.contact.create({
-      data: {
-        owner_user_id: users[0].id,
-        contact_user_id: users[1].id,
-        alias: 'Bobby',
-      },
-    }),
-    prisma.contact.create({
-      data: {
-        owner_user_id: users[0].id,
-        contact_user_id: users[2].id,
-      },
-    }),
-    prisma.contact.create({
-      data: {
-        owner_user_id: users[1].id,
-        contact_user_id: users[0].id,
-        alias: 'Ali',
-      },
-    }),
-  ]);
-
-  console.log(`✅ Creados ${contacts.length} contactos`);
-  console.log('🎉 Seeds completados exitosamente');
-}
-
-main()
-  .catch((e) => {
-    console.error('❌ Error en seeds:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
-```
-
-**Comandos Útiles**
-
-```bash
-# Generar migración
-npx prisma migrate dev --name init_users_contacts
-
-# Ver estado de migraciones
-npx prisma migrate status
-
-# Ejecutar seeds
-npm run prisma:seed
-
-# Abrir Prisma Studio (interfaz visual)
-npx prisma studio
-
-# Generar cliente Prisma tras cambios
-npx prisma generate
-
-# Resetear base de datos (CUIDADO: borra datos)
-npx prisma migrate reset
-```
-
-**Tablas DB Creadas**
-
-**USERS (11 campos)**
-- `id` BIGINT PRIMARY KEY AUTO_INCREMENT
-- `email` VARCHAR(100) UNIQUE NOT NULL
-- `username` VARCHAR(50) UNIQUE NOT NULL
-- `password_hash` VARCHAR(255) NOT NULL
-- `display_name` VARCHAR(255) NOT NULL
-- `avatar_url` VARCHAR(255) NULL
-- `presence_status` VARCHAR(20) DEFAULT 'offline'
-- `is_active` BOOLEAN DEFAULT TRUE
-- `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-- `updated_at` DATETIME NOT NULL ON UPDATE CURRENT_TIMESTAMP
-- `last_login_at` DATETIME NULL
-
-**CONTACTS (5 campos)**
-- `id` BIGINT PRIMARY KEY AUTO_INCREMENT
-- `owner_user_id` BIGINT NOT NULL (FK → USERS.id)
-- `contact_user_id` BIGINT NOT NULL (FK → USERS.id)
-- `alias` VARCHAR(50) NULL
-- `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-
-**Verificación Post-Migración**
-
-```sql
--- Verificar tablas creadas
-SHOW TABLES;
-
--- Ver estructura de USERS
-DESCRIBE users;
-
--- Ver índices en USERS
-SHOW INDEX FROM users;
-
--- Ver constraints de CONTACTS
-SHOW CREATE TABLE contacts;
-
--- Verificar datos de seeds
-SELECT id, email, username, display_name FROM users;
-SELECT * FROM contacts;
-```
-
-**Consideraciones Técnicas**
-
-**Optimización**
-- Índices en columnas de búsqueda frecuente (email, username)
-- Índice compuesto único en CONTACTS previene duplicados
-- ON DELETE CASCADE en foreign keys para limpieza automática
-
-**Seguridad**
-- password_hash nunca expuesto en queries de lectura
-- is_active permite soft delete de usuarios
-- Foreign keys aseguran integridad referencial
-
-**Escalabilidad**
-- BIGINT para IDs soporta hasta 9.2 quintillones de registros
-- created_at/updated_at automáticos con triggers de MySQL
-
-**Notas**
-- DATABASE_URL debe estar en `.env` (nunca en código)
-- Usar `prisma migrate deploy` en producción (no `dev`)
-- Backups de base de datos antes de migraciones en producción
-- Considerar índice en `last_login_at` si se filtra frecuentemente
-
-**Labels**
-`database`, `prisma`, `migrations`, `mysql`, `sprint-1`, `p0-blocker`
+**Ver detalles completos en GitHub:** [Issue #4](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/4)
 
 ---
 
@@ -2327,39 +1680,43 @@ Historias de usuario priorizadas organizadas por sprint:
 
 ---
 
-### 🎫 Tickets de Trabajo (20 documentos)
+### 🎫 Tickets de Trabajo (20 Issues en GitHub)
 
-Tickets en formato Jira organizados en 4 épicas:
+Todos los tickets de trabajo están gestionados como issues en GitHub, organizados en 4 épicas:
 
 #### EPIC-1: Fundación - Autenticación y Usuarios (Sprint 1)
-- [`UNLOKD-001: Setup proyecto NestJS + MySQL + Redis con Docker`](documentation/tickets/UNLOKD-001-setup-proyecto.md) - 5 pts
-- [`UNLOKD-002: Implementar módulo de autenticación`](documentation/tickets/UNLOKD-002-modulo-auth.md) - 8 pts
-- [`UNLOKD-003: Implementar módulo de usuarios y perfiles`](documentation/tickets/UNLOKD-003-modulo-users.md) - 5 pts
-- [`UNLOKD-004: Crear migraciones de BD (USERS, CONTACTS)`](documentation/tickets/UNLOKD-004-migraciones-users.md) - 2 pts
-- [`UNLOKD-005: Tests E2E de autenticación`](documentation/tickets/UNLOKD-005-tests-e2e-auth.md) - 1 pt
+- [Issue #1: Setup proyecto NestJS + MySQL + Redis con Docker](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/1) - 5 pts
+- [Issue #2: Implementar módulo de autenticación](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/2) - 8 pts
+- [Issue #3: Implementar módulo de usuarios y perfiles](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/3) - 5 pts
+- [Issue #4: Crear migraciones de BD (USERS, CONTACTS)](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/4) - 2 pts
+- [Issue #5: Tests E2E de autenticación](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/5) - 1 pt
 
 #### EPIC-2: Mensajería Básica (Sprint 2)
-- [`UNLOKD-006: Implementar módulo de chats`](documentation/tickets/UNLOKD-006-modulo-chats.md) - 5 pts
-- [`UNLOKD-007: Implementar módulo de mensajes`](documentation/tickets/UNLOKD-007-modulo-messages.md) - 5 pts
-- [`UNLOKD-008: Implementar WebSocket gateway`](documentation/tickets/UNLOKD-008-websocket-gateway.md) - 8 pts
-- [`UNLOKD-009: Crear migraciones (CHATS, MESSAGES)`](documentation/tickets/UNLOKD-009-migraciones-messages.md) - 2 pts
-- [`UNLOKD-010: Tests E2E de mensajería`](documentation/tickets/UNLOKD-010-tests-e2e-mensajeria.md) - 1 pt
+- [Issue #6: Implementar módulo de chats](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/6) - 5 pts
+- [Issue #7: Implementar módulo de mensajes](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/7) - 5 pts
+- [Issue #8: Implementar WebSocket gateway](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/8) - 8 pts
+- [Issue #9: Crear migraciones (CHATS, MESSAGES)](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/9) - 2 pts
+- [Issue #10: Tests E2E de mensajería](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/10) - 1 pt
 
 #### EPIC-3: Motor de Condiciones (Sprint 3) - DIFERENCIADOR CLAVE
-- [`UNLOKD-011: Arquitectura del motor de condiciones (Strategy Pattern)`](documentation/tickets/UNLOKD-011-arquitectura-motor-condiciones.md) - 5 pts
-- [`UNLOKD-012: Implementar condición TIME`](documentation/tickets/UNLOKD-012-condicion-time.md) - 5 pts
-- [`UNLOKD-013: Implementar condición PASSWORD`](documentation/tickets/UNLOKD-013-condicion-password.md) - 8 pts
-- [`UNLOKD-014: Implementar servicio de desbloqueo`](documentation/tickets/UNLOKD-014-servicio-desbloqueo.md) - 5 pts
-- [`UNLOKD-015: Crear migraciones (CONDITIONS, UNLOCK_ATTEMPTS)`](documentation/tickets/UNLOKD-015-migraciones-conditions.md) - 2 pts
-- [`UNLOKD-016: Tests del motor de condiciones`](documentation/tickets/UNLOKD-016-tests-motor-condiciones.md) - 1 pt
+- [Issue #11: Arquitectura del motor de condiciones (Strategy Pattern)](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/11) - 5 pts
+- [Issue #12: Implementar condición TIME](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/12) - 5 pts
+- [Issue #13: Implementar condición PASSWORD](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/13) - 8 pts
+- [Issue #14: Implementar servicio de desbloqueo](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/14) - 5 pts
+- [Issue #15: Crear migraciones (CONDITIONS, UNLOCK_ATTEMPTS)](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/15) - 2 pts
+- [Issue #16: Tests del motor de condiciones](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/16) - 1 pt
 
 #### EPIC-4: Multimedia, Notificaciones y UX (Sprint 4)
-- [`UNLOKD-017: Implementar módulo de multimedia (S3)`](documentation/tickets/UNLOKD-017-modulo-multimedia.md) - 8 pts
-- [`UNLOKD-018: Implementar worker de notificaciones push`](documentation/tickets/UNLOKD-018-worker-notificaciones.md) - 5 pts
-- [`UNLOKD-019: Implementar previsualización difuminada frontend`](documentation/tickets/UNLOKD-019-ui-previsualizacion.md) - 5 pts
-- [`UNLOKD-020: Implementar contador regresivo visual`](documentation/tickets/UNLOKD-020-contador-regresivo.md) - 3 pts
+- [Issue #17: Implementar módulo de multimedia (S3)](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/17) - 8 pts
+- [Issue #18: Implementar worker de notificaciones push](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/18) - 5 pts
+- [Issue #19: Implementar previsualización difuminada frontend](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/19) - 5 pts
+- [Issue #20: Implementar contador regresivo visual](https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues/20) - 3 pts
 
 **Total MVP**: 89 Story Points
+
+**Ver todos los issues en GitHub**: https://github.com/OMAKALQANTARA/AI4Devs-finalproject/issues
+
+> **Nota:** Los tickets también están disponibles como archivos markdown locales en el directorio [`documentation/tickets/`](documentation/tickets/) para referencia offline y documentación del proyecto.
 
 ---
 
