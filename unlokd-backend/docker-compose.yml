@@ -1,0 +1,37 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: mysql://root:unlokd2025@mysql:3306/unlokd_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: change-me
+      JWT_EXPIRATION: 24h
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: unlokd2025
+      MYSQL_DATABASE: unlokd_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mysql_data:
+  redis_data:

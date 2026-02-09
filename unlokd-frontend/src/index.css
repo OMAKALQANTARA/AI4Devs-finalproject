@@ -1,0 +1,43 @@
+:root {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #f4f5f7;
+  background-color: #0a0e1a;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --color-bg: #0a0e1a;
+  --color-card: #131a2a;
+  --color-text: #f4f5f7;
+  --color-muted: #8b93a7;
+  --color-accent: #f6b63f;
+  --color-online: #44e3be;
+  --shadow-glow: 0 12px 24px rgba(246, 182, 63, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+input,
+button {
+  font-family: inherit;
+}

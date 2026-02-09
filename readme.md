@@ -417,31 +417,48 @@ A alto nivel, la infraestructura se compone de:
 
 #### Proceso de despliegue
 
-El proceso de despliegue está orientado a simplicidad y repetibilidad utilizando Docker y un VPS:
+Guía paso a paso para levantar el sistema en una instancia nueva usando Docker.
 
-1. **Construcción de contenedores**  
-   - Se definen `Dockerfile` para el backend (API + WebSocket) y para los workers (notificaciones, multimedia), así como un `docker-compose.yml` que describe MySQL, Redis y el almacenamiento local/S3 si aplica.
-   - En local o en un pipeline CI se ejecuta `docker build` para generar las imágenes de backend y workers.
+1. **Crear y preparar el servidor**  
+   - Provisiona un VPS con Ubuntu 22.04 LTS.  
+   - Abre puertos en el firewall: `22`, `80`, `443` (y `3000` si expondrás la API sin proxy).  
+   - Instala Docker y Docker Compose:  
+     - `sudo apt update && sudo apt install -y docker.io docker-compose-plugin`  
+     - `sudo usermod -aG docker $USER` y vuelve a iniciar sesión.
 
-2. **Provisionamiento de infraestructura**  
-   - Se crea un VPS en un proveedor de bajo coste (por ejemplo Hetzner, Contabo, DigitalOcean, Render/Railway con soporte Docker) y se instala Docker y docker-compose.
-   - Se configuran DNS y el reverse proxy (Nginx/Traefik) para apuntar el dominio público hacia el VPS y obtener certificados TLS (Let’s Encrypt).
+2. **Copiar el proyecto al servidor**  
+   - Clona el repositorio en el VPS:  
+     - `git clone <URL_DEL_REPO> unlokd && cd unlokd`
 
-3. **Despliegue de servicios**  
-   - Se copia el archivo `docker-compose.yml` y los ficheros de configuración necesarios al servidor (o se utiliza un pipeline CI/CD para hacerlo automáticamente).
-   - Se levantan los servicios con `docker-compose up -d`, iniciando contenedores para: backend NestJS, MySQL, Redis, workers y reverse proxy si se define en el mismo stack.
+3. **Configurar variables de entorno**  
+   - Crea archivos `.env` para backend y servicios según tu `docker-compose.yml`.  
+   - Variables típicas:  
+     - `DATABASE_URL`, `JWT_SECRET`, `REDIS_URL`, `NODE_ENV=production`, `CORS_ORIGIN`.
 
-4. **Migraciones y semillas de datos**  
-   - Una vez que MySQL está en marcha, se ejecutan las migraciones del ORM (Prisma/TypeORM) desde el contenedor backend o desde un job específico para crear el esquema de base de datos.
-   - Opcionalmente se ejecutan semillas de datos iniciales (usuarios de prueba, chats de demo) para facilitar QA o demos.
+4. **Construir y levantar contenedores**  
+   - Ejecuta: `docker compose up -d --build`  
+   - Verifica estado: `docker compose ps`
 
-5. **Actualizaciones y despliegues continuos**  
-   - Para nuevas versiones, el pipeline construye nuevas imágenes, las sube a un registry (o las copia al servidor) y ejecuta una secuencia de `docker-compose pull` y `docker-compose up -d` para hacer rolling update del backend y workers.
-   - Las migraciones se ejecutan como parte del despliegue, asegurando que la base de datos esté en el estado esperado antes de servir tráfico.
+5. **Ejecutar migraciones y seed (si aplica)**  
+   - Entra al contenedor backend y corre migraciones:  
+     - `docker compose exec backend npx prisma migrate deploy`  
+   - Opcional: ejecuta seeds para datos de demo.
 
-6. **Monitorización básica**  
-   - Se exponen endpoints de health check (por ejemplo, `/health`) desde el backend para que el reverse proxy o el orquestador puedan verificar el estado de la aplicación.
-   - Inicialmente se usan logs estructurados y métricas simples (CPU/RAM del VPS) y se deja espacio para incorporar herramientas más avanzadas (Prometheus/Grafana) si el tráfico crece.
+6. **Configurar dominio y HTTPS**  
+   - Apunta el DNS del dominio al IP del VPS.  
+   - Configura un reverse proxy (Nginx/Traefik) con TLS de Let’s Encrypt.  
+   - Reenvía tráfico a los contenedores (frontend/backedn) según corresponda.
+
+7. **Verificación final**  
+   - Comprueba que la API responde: `GET /health` o `GET /api/v1/users/me` con token.  
+     - Ejemplo con `curl`:  
+       - `curl -i http://<TU_DOMINIO_O_IP>/health`  
+       - `curl -i -H "Authorization: Bearer <TOKEN>" http://<TU_DOMINIO_O_IP>/api/v1/users/me`  
+   - Abre el frontend y valida login, chat y perfil.
+
+8. **Actualizaciones futuras**  
+   - `git pull` y `docker compose up -d --build`  
+   - Ejecuta migraciones si hay cambios en el esquema.
 
 
 ### **2.5. Seguridad**

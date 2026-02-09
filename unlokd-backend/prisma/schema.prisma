@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            BigInt   @id @default(autoincrement())
+  email         String   @unique @db.VarChar(100)
+  username      String   @unique @db.VarChar(50)
+  password_hash String   @db.VarChar(255)
+  display_name  String   @db.VarChar(255)
+  avatar_url    String?  @db.VarChar(255)
+  presence_status String? @db.VarChar(50)
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  last_login_at DateTime?
+
+  contacts      Contact[] @relation("UserContactsOwner")
+  contactOf     Contact[] @relation("UserContactsContact")
+
+  @@map("users")
+}
+
+model Contact {
+  id              BigInt   @id @default(autoincrement())
+  owner_user_id   BigInt
+  contact_user_id BigInt
+  alias           String?  @db.VarChar(50)
+  created_at      DateTime @default(now())
+
+  owner   User @relation("UserContactsOwner", fields: [owner_user_id], references: [id])
+  contact User @relation("UserContactsContact", fields: [contact_user_id], references: [id])
+
+  @@unique([owner_user_id, contact_user_id])
+  @@index([owner_user_id])
+  @@map("contacts")
+}
