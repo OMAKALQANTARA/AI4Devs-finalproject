@@ -34,13 +34,13 @@ describe('UsersService', () => {
       presenceStatus: null,
     };
 
-    const updatedUser: UserProfileRecord = {
-      ...user,
-      displayName: 'Nuevo Nombre',
-    };
-
-    usersRepository.findProfileById.mockResolvedValue(user);
-    usersRepository.updateProfile.mockResolvedValue(updatedUser);
+    usersRepository.findProfileById
+      .mockResolvedValueOnce(user)
+      .mockResolvedValueOnce({
+        ...user,
+        displayName: 'Nuevo Nombre',
+      });
+    usersRepository.updateProfile.mockResolvedValue();
 
     const result = await usersService.updateProfile(1, {
       displayName: 'Nuevo Nombre',

@@ -7,6 +7,8 @@ import { DatabaseModule } from './infrastructure/database/database.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { ChatsModule } from './modules/chats/chats.module';
+import { MessagesModule } from './modules/messages/messages.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { UsersModule } from './modules/users/users.module';
     RedisModule,
     AuthModule,
     UsersModule,
+    ChatsModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

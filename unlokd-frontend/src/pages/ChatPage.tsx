@@ -1,4 +1,9 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { getChatDetails } from '../services/chats';
+import type { Chat } from '../services/chats';
+import { getChatMessages, sendMessage } from '../services/messages';
+import type { Message } from '../services/messages';
 
 const messages = [
   { id: 1, type: 'incoming', text: '¡Hola! Tengo algo especial para ti 🎁' },
@@ -34,6 +39,75 @@ const messages = [
 
 export function ChatPage() {
   const { chatId } = useParams();
+  const [chat, setChat] = useState<Chat | null>(null);
+  const [feedback, setFeedback] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
+  const [draft, setDraft] = useState('');
+
+  useEffect(() => {
+    if (!chatId) return;
+    const loadChat = async () => {
+      try {
+        const data = await getChatDetails(Number(chatId));
+        setChat(data);
+      } catch (error) {
+        setFeedback(
+          error instanceof Error ? error.message : 'No se pudo cargar el chat.',
+        );
+      }
+    };
+    loadChat();
+  }, [chatId]);
+
+  useEffect(() => {
+    if (!chatId) return;
+    const loadMessages = async () => {
+      try {
+        const data = await getChatMessages(Number(chatId));
+        setMessages(data.messages);
+        setNextCursor(data.nextCursor);
+      } catch (error) {
+        setFeedback(
+          error instanceof Error ? error.message : 'No se pudo cargar mensajes.',
+        );
+      }
+    };
+    loadMessages();
+  }, [chatId]);
+
+  const isOwnMessage = useMemo(() => {
+    return (message: Message) => message.senderId === 1;
+  }, []);
+
+  const handleLoadMore = async () => {
+    if (!chatId || !nextCursor) return;
+    try {
+      const data = await getChatMessages(Number(chatId), nextCursor);
+      setMessages((prev) => [...prev, ...data.messages]);
+      setNextCursor(data.nextCursor);
+    } catch (error) {
+      setFeedback(
+        error instanceof Error ? error.message : 'No se pudo cargar más.',
+      );
+    }
+  };
+
+  const handleSend = async () => {
+    if (!chatId || !draft.trim()) return;
+    try {
+      const created = await sendMessage({
+        chatId: Number(chatId),
+        contentText: draft.trim(),
+      });
+      setMessages((prev) => [created, ...prev]);
+      setDraft('');
+    } catch (error) {
+      setFeedback(
+        error instanceof Error ? error.message : 'No se pudo enviar mensaje.',
+      );
+    }
+  };
 
   return (
     <section className="page chat-page">
@@ -42,9 +116,11 @@ export function ChatPage() {
           ←
         </Link>
         <div className="chat-header__info">
-          <div className="avatar">MG</div>
+          <div className="avatar">
+            {(chat?.title ?? 'CH').slice(0, 2).toUpperCase()}
+          </div>
           <div>
-            <h3>María García</h3>
+            <h3>{chat?.title ?? 'Chat directo'}</h3>
             <p className="is-online">En línea</p>
           </div>
         </div>
@@ -58,24 +134,26 @@ export function ChatPage() {
         </div>
       </header>
 
+      {feedback && <p className="form-feedback is-error">{feedback}</p>}
+
       <div className="chat-thread">
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`message message--${message.type}`}
+            className={`message message--${
+              isOwnMessage(message) ? 'outgoing' : 'incoming'
+            }`}
           >
-            {'title' in message && (
-              <p className="message__title">{message.title}</p>
-            )}
-            <p>{message.text}</p>
-            {'action' in message && (
-              <button className="message__action" type="button">
-                {message.action}
-              </button>
-            )}
+            <p>{message.contentText}</p>
           </div>
         ))}
       </div>
+
+      {nextCursor && (
+        <button className="secondary-button" type="button" onClick={handleLoadMore}>
+          Cargar más
+        </button>
+      )}
 
       <div className="chat-input">
         <button className="icon-button" type="button" aria-label="Agregar">
@@ -83,9 +161,16 @@ export function ChatPage() {
         </button>
         <input
           type="text"
-          placeholder={`Escribe un mensaje...${chatId ? '' : ''}`}
+          placeholder="Escribe un mensaje..."
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
         />
-        <button className="icon-button" type="button" aria-label="Enviar">
+        <button
+          className="icon-button"
+          type="button"
+          aria-label="Enviar"
+          onClick={handleSend}
+        >
           ➤
         </button>
       </div>

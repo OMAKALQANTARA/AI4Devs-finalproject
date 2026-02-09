@@ -27,12 +27,12 @@ export class UsersService {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    const updated = await this.usersRepository.updateProfile(userId, {
+    await this.usersRepository.updateProfile(userId, {
       displayName: payload.displayName,
       presenceStatus: payload.presenceStatus,
     });
 
-    return updated ?? user;
+    return this.getProfile(userId);
   }
 
   async uploadAvatar(userId: number, file: Express.Multer.File) {
