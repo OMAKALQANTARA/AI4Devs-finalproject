@@ -7,26 +7,26 @@ async function main() {
   const passwordHash = await bcrypt.hash('Password123!', 10);
 
   const user1 = await prisma.user.upsert({
-    where: { email: 'juan.delgado@example.com' },
+    where: { email: 'omar.alcantara@example.com' },
     update: {},
     create: {
-      email: 'juan.delgado@example.com',
-      username: 'juandelgado',
+      email: 'omar.alcantara@example.com',
+      username: 'omaralcantara',
       password_hash: passwordHash,
-      display_name: 'Juan Delgado',
-      presence_status: 'online',
+      display_name: 'Omar Alcantara',
+      presence_status: 'En Linea',
     },
   });
 
   const user2 = await prisma.user.upsert({
-    where: { email: 'maria.garcia@example.com' },
+    where: { email: 'jessica.estrella@example.com' },
     update: {},
     create: {
-      email: 'maria.garcia@example.com',
-      username: 'mariagarcia',
+      email: 'jessica.estrella@example.com',
+      username: 'jessicasterrella',
       password_hash: passwordHash,
-      display_name: 'María García',
-      presence_status: 'online',
+      display_name: 'Jessica Estrella',
+      presence_status: 'En Linea',
     },
   });
 
@@ -41,7 +41,7 @@ async function main() {
     create: {
       owner_user_id: user1.id,
       contact_user_id: user2.id,
-      alias: 'Maria',
+      alias: 'Jessica',
     },
   });
 }
