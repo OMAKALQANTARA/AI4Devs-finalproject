@@ -2,6 +2,7 @@ const STORAGE_KEY = 'authToken';
 
 type JwtPayload = {
   exp?: number;
+  userId?: number;
 };
 
 function decodeJwtPayload(token: string): JwtPayload | null {
@@ -51,4 +52,16 @@ export function getValidAuthToken(): string | null {
     return null;
   }
   return token;
+}
+
+export function getAuthUserId(): number | null {
+  const token = localStorage.getItem(STORAGE_KEY);
+  if (!token) {
+    return null;
+  }
+  const payload = decodeJwtPayload(token);
+  if (!payload?.userId) {
+    return null;
+  }
+  return payload.userId;
 }

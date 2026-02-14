@@ -1,11 +1,14 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+import { io as ioClient, Socket } from 'socket.io-client';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { MessagesController } from '../src/modules/messages/messages.controller';
 import { MessagesService } from '../src/modules/messages/messages.service';
 import { MessagesRepository } from '../src/modules/messages/messages.repository';
 import { JwtAuthGuard } from '../src/modules/auth/jwt-auth.guard';
 import { RealtimeGateway } from '../src/modules/realtime/realtime.gateway';
+import { ChatsRepository } from '../src/modules/chats/chats.repository';
 
 class InMemoryMessagesRepository {
   private messages: Array<{
@@ -57,21 +60,32 @@ class InMemoryMessagesRepository {
   }
 }
 
-describe('Messages E2E', () => {
+class InMemoryChatsRepository {
+  private members = new Set<string>(['1:1']);
+
+  async isMember(chatId: number, userId: number) {
+    return this.members.has(`${chatId}:${userId}`);
+  }
+}
+
+describe('Realtime Gateway E2E', () => {
   let app: INestApplication;
+  let socket: Socket;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
+      imports: [JwtModule.register({ secret: 'test-secret' })],
       controllers: [MessagesController],
       providers: [
         MessagesService,
+        RealtimeGateway,
         {
           provide: MessagesRepository,
           useClass: InMemoryMessagesRepository,
         },
         {
-          provide: RealtimeGateway,
-          useValue: { emitNewMessage: jest.fn() },
+          provide: ChatsRepository,
+          useClass: InMemoryChatsRepository,
         },
       ],
     })
@@ -93,14 +107,45 @@ describe('Messages E2E', () => {
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
     );
-    await app.init();
+    await app.listen(0);
+
+    const jwtService = app.get(JwtService);
+    const token = jwtService.sign({
+      userId: 1,
+      email: 'user@example.com',
+      username: 'user',
+    });
+    const address = app.getHttpServer().address();
+    const port = typeof address === 'object' && address ? address.port : 0;
+
+    socket = ioClient(`http://localhost:${port}`, {
+      auth: { token },
+      transports: ['websocket'],
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      socket.on('connect', () => resolve());
+      socket.on('connect_error', (error) => reject(error));
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      socket.emit('joinChat', { chatId: 1 }, () => resolve());
+      socket.on('error', (error) => reject(error));
+    });
   });
 
   afterAll(async () => {
+    if (socket && socket.connected) {
+      socket.disconnect();
+    }
     await app.close();
   });
 
-  it('POST /api/v1/messages creates message', async () => {
+  it('emits newMessage to chat room', async () => {
+    const messagePromise = new Promise<any>((resolve) => {
+      socket.once('newMessage', (payload) => resolve(payload));
+    });
+
     await request(app.getHttpServer())
       .post('/api/v1/messages')
       .send({
@@ -110,14 +155,10 @@ describe('Messages E2E', () => {
         visibilityType: 'PLAIN',
       })
       .expect(201);
-  });
 
-  it('GET /api/v1/chats/:chatId/messages returns timeline', async () => {
-    await request(app.getHttpServer())
-      .get('/api/v1/chats/1/messages?limit=1')
-      .expect(200)
-      .expect(({ body }) => {
-        expect(Array.isArray(body.messages)).toBe(true);
-      });
+    const payload = await messagePromise;
+    expect(payload.chatId).toBe(1);
+    expect(payload.messageId).toBeDefined();
+    expect(payload.createdAt).toBeDefined();
   });
 });

@@ -1,22 +1,27 @@
 import { API_BASE_URL, apiRequest } from './api';
+import { getValidAuthToken } from '../utils/auth';
 
 export type ChatMember = {
   userId: number;
   role: 'OWNER' | 'MEMBER';
+  displayName: string;
+  presenceStatus: string | null;
+  avatarUrl: string | null;
 };
 
 export type Chat = {
   id: number;
   publicId: string;
-  type: 'DIRECT';
+  type: 'DIRECT' | 'GROUP';
   title: string | null;
+  peerDisplayName?: string | null;
   createdBy: number;
   createdAt: string;
   members?: ChatMember[];
 };
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('authToken');
+const getAuthHeaders = (): HeadersInit => {
+  const token = getValidAuthToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
@@ -38,6 +43,13 @@ export async function createDirectChat(contactId: number) {
 export async function getChatDetails(chatId: number) {
   return apiRequest<Chat>(`/api/v1/chats/${chatId}`, {
     method: 'GET',
+    headers: getAuthHeaders(),
+  });
+}
+
+export async function deleteChat(chatId: number) {
+  return apiRequest<{ success: boolean }>(`/api/v1/chats/${chatId}`, {
+    method: 'DELETE',
     headers: getAuthHeaders(),
   });
 }

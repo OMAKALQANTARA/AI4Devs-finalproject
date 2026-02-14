@@ -4,42 +4,29 @@ import { getChatDetails } from '../services/chats';
 import type { Chat } from '../services/chats';
 import { getChatMessages, sendMessage } from '../services/messages';
 import type { Message } from '../services/messages';
-
-const messages = [
-  { id: 1, type: 'incoming', text: '¡Hola! Tengo algo especial para ti 🎁' },
-  { id: 2, type: 'outgoing', text: '¡Cuéntame! 😍' },
-  {
-    id: 3,
-    type: 'locked',
-    title: 'Mensaje bloqueado',
-    text: '¿Qué tiene llaves pero no puede abrir puertas?',
-    action: 'Intentar desbloquear',
-  },
-  {
-    id: 4,
-    type: 'locked',
-    title: 'Mensaje bloqueado',
-    text: 'Se revelará el 14 de Feb, 2025',
-    action: 'Intentar desbloquear',
-  },
-  { id: 5, type: 'outgoing', text: '¡Me encanta este juego! 😍' },
-  {
-    id: 6,
-    type: 'locked',
-    title: 'Mensaje bloqueado',
-    text: 'Protegido con contraseña',
-    action: 'Intentar desbloquear',
-  },
-  {
-    id: 7,
-    type: 'revealed',
-    text: '¡Sorpresa! Reservé una cena para los dos este viernes.',
-  },
-];
+import { getAuthUserId, getValidAuthToken } from '../utils/auth';
+import { API_BASE_URL } from '../services/api';
+import { io, type Socket } from 'socket.io-client';
 
 export function ChatPage() {
   const { chatId } = useParams();
   const [chat, setChat] = useState<Chat | null>(null);
+  const contactName = useMemo(() => {
+    if (!chat) return null;
+    if (chat.type !== 'DIRECT') {
+      return chat.title;
+    }
+    if (chat.peerDisplayName) {
+      return chat.peerDisplayName;
+    }
+    const currentUserId = getAuthUserId();
+    if (!currentUserId || !chat.members?.length) {
+      return null;
+    }
+    const peer = chat.members.find((member) => member.userId !== currentUserId);
+    return peer?.displayName ?? null;
+  }, [chat]);
+
   const [feedback, setFeedback] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
@@ -76,8 +63,58 @@ export function ChatPage() {
     loadMessages();
   }, [chatId]);
 
+  useEffect(() => {
+    if (!chatId) return;
+    const token = getValidAuthToken();
+    if (!token) return;
+
+    const socketBaseUrl =
+      import.meta.env.VITE_WS_BASE_URL ?? API_BASE_URL;
+    const socket: Socket = io(socketBaseUrl, {
+      auth: { token },
+      transports: ['websocket'],
+    });
+
+    socket.on('connect', () => {
+      socket.emit('joinChat', { chatId: Number(chatId) });
+    });
+
+    socket.on('newMessage', (payload: any) => {
+      const incomingId = payload?.messageId ?? payload?.id;
+      if (!incomingId || payload?.chatId !== Number(chatId)) return;
+      const incoming: Message = {
+        id: incomingId,
+        chatId: payload.chatId,
+        senderId: payload.senderId,
+        contentType: payload.contentType,
+        contentText: payload.contentText,
+        visibilityType: payload.visibilityType,
+        status: payload.status,
+        createdAt: payload.createdAt,
+      };
+
+      const currentUserId = getAuthUserId();
+      setMessages((prev) => {
+        if (prev.some((item) => item.id === incoming.id)) {
+          return prev;
+        }
+        if (currentUserId !== null && incoming.senderId === currentUserId) {
+          return prev;
+        }
+        return [incoming, ...prev];
+      });
+    });
+
+    return () => {
+      socket.emit('leaveChat', { chatId: Number(chatId) });
+      socket.disconnect();
+    };
+  }, [chatId]);
+
   const isOwnMessage = useMemo(() => {
-    return (message: Message) => message.senderId === 1;
+    const currentUserId = getAuthUserId();
+    return (message: Message) =>
+      currentUserId !== null && message.senderId === currentUserId;
   }, []);
 
   const handleLoadMore = async () => {
@@ -100,7 +137,12 @@ export function ChatPage() {
         chatId: Number(chatId),
         contentText: draft.trim(),
       });
-      setMessages((prev) => [created, ...prev]);
+      setMessages((prev) => {
+        if (prev.some((item) => item.id === created.id)) {
+          return prev;
+        }
+        return [created, ...prev];
+      });
       setDraft('');
     } catch (error) {
       setFeedback(
@@ -111,16 +153,19 @@ export function ChatPage() {
 
   return (
     <section className="page chat-page">
-      <header className="chat-header">
+      <header className="chat-header chat-header--sticky">
         <Link to="/chats" className="icon-button" aria-label="Regresar">
-          ←
+          ❮
         </Link>
         <div className="chat-header__info">
           <div className="avatar">
-            {(chat?.title ?? 'CH').slice(0, 2).toUpperCase()}
+            {(contactName ?? 'CH').slice(0, 2).toUpperCase()}
           </div>
           <div>
-            <h3>{chat?.title ?? 'Chat directo'}</h3>
+            <h3>
+              {contactName ??
+                (chat?.type === 'GROUP' ? 'Chat grupal' : 'Chat directo')}
+            </h3>
             <p className="is-online">En línea</p>
           </div>
         </div>
@@ -156,14 +201,17 @@ export function ChatPage() {
       )}
 
       <div className="chat-input">
-        <button className="icon-button" type="button" aria-label="Agregar">
-          +
-        </button>
         <input
           type="text"
           placeholder="Escribe un mensaje..."
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              handleSend();
+            }
+          }}
         />
         <button
           className="icon-button"

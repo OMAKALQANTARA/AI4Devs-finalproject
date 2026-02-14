@@ -34,6 +34,17 @@ export class UsersRepository {
     return rows.length ? this.mapProfile(rows[0]) : null;
   }
 
+  async findProfileByEmail(email: string): Promise<UserProfileRecord | null> {
+    const rows = await this.prismaService.$queryRaw<DbUser[]>`
+      SELECT id, email, username, display_name, avatar_url, presence_status
+      FROM users
+      WHERE email = ${email}
+      LIMIT 1
+    `;
+
+    return rows.length ? this.mapProfile(rows[0]) : null;
+  }
+
   async updateProfile(
     userId: number,
     payload: { displayName?: string; presenceStatus?: string },

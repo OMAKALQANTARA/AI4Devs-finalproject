@@ -6,10 +6,14 @@ import {
   MessageVisibilityType,
 } from './dto/create-message.dto';
 import { MessageDto } from './dto/message.dto';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 
 @Injectable()
 export class MessagesService {
-  constructor(private readonly messagesRepository: MessagesRepository) {}
+  constructor(
+    private readonly messagesRepository: MessagesRepository,
+    private readonly realtimeGateway: RealtimeGateway,
+  ) {}
 
   async createMessage(userId: number, payload: CreateMessageDto): Promise<MessageDto> {
     const isMember = await this.messagesRepository.isChatMember(
@@ -28,7 +32,9 @@ export class MessagesService {
       visibilityType: MessageVisibilityType.PLAIN,
     });
 
-    return this.mapMessage(created);
+    const message = this.mapMessage(created);
+    await this.realtimeGateway.emitNewMessage(message);
+    return message;
   }
 
   async getChatMessages(

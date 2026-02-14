@@ -9,6 +9,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ChatsModule } from './modules/chats/chats.module';
 import { MessagesModule } from './modules/messages/messages.module';
+import { RealtimeModule } from './modules/realtime/realtime.module';
+import { ContactsModule } from './modules/contacts/contacts.module';
 
 @Module({
   imports: [
@@ -21,8 +23,10 @@ import { MessagesModule } from './modules/messages/messages.module';
     RedisModule,
     AuthModule,
     UsersModule,
+    ContactsModule,
     ChatsModule,
     MessagesModule,
+    RealtimeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

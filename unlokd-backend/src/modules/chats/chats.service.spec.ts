@@ -1,10 +1,12 @@
 import { ForbiddenException } from '@nestjs/common';
 import { ChatsService } from './chats.service';
 import { ChatsRepository } from './chats.repository';
+import { UsersRepository } from '../users/users.repository';
 
 describe('ChatsService', () => {
   let chatsService: ChatsService;
   let chatsRepository: jest.Mocked<ChatsRepository>;
+  let usersRepository: jest.Mocked<UsersRepository>;
 
   beforeEach(() => {
     chatsRepository = {
@@ -17,7 +19,11 @@ describe('ChatsService', () => {
       isMember: jest.fn(),
     } as unknown as jest.Mocked<ChatsRepository>;
 
-    chatsService = new ChatsService(chatsRepository);
+    usersRepository = {
+      findProfileById: jest.fn(),
+    } as unknown as jest.Mocked<UsersRepository>;
+
+    chatsService = new ChatsService(chatsRepository, usersRepository);
   });
 
   it('returns existing direct chat if found', async () => {

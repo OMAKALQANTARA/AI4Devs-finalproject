@@ -5,6 +5,7 @@ import { ChatsController } from '../src/modules/chats/chats.controller';
 import { ChatsService } from '../src/modules/chats/chats.service';
 import { ChatsRepository } from '../src/modules/chats/chats.repository';
 import { JwtAuthGuard } from '../src/modules/auth/jwt-auth.guard';
+import { UsersRepository } from '../src/modules/users/users.repository';
 
 class InMemoryChatsRepository {
   private chats: Array<{
@@ -70,6 +71,19 @@ class InMemoryChatsRepository {
   }
 }
 
+class InMemoryUsersRepository {
+  async findProfileById(userId: number) {
+    return {
+      id: userId,
+      email: `${userId}@example.com`,
+      username: `user${userId}`,
+      displayName: `User ${userId}`,
+      avatarUrl: null,
+      presenceStatus: null,
+    };
+  }
+}
+
 describe('Chats E2E', () => {
   let app: INestApplication;
   let repository: InMemoryChatsRepository;
@@ -83,6 +97,10 @@ describe('Chats E2E', () => {
         {
           provide: ChatsRepository,
           useValue: repository,
+        },
+        {
+          provide: UsersRepository,
+          useClass: InMemoryUsersRepository,
         },
       ],
     })

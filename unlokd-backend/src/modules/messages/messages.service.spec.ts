@@ -2,10 +2,12 @@ import { ForbiddenException } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { MessagesRepository } from './messages.repository';
 import { MessageContentType, MessageVisibilityType } from './dto/create-message.dto';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 
 describe('MessagesService', () => {
   let messagesService: MessagesService;
   let messagesRepository: jest.Mocked<MessagesRepository>;
+  let realtimeGateway: jest.Mocked<RealtimeGateway>;
 
   beforeEach(() => {
     messagesRepository = {
@@ -15,7 +17,11 @@ describe('MessagesService', () => {
       updateLastReadAt: jest.fn(),
     } as unknown as jest.Mocked<MessagesRepository>;
 
-    messagesService = new MessagesService(messagesRepository);
+    realtimeGateway = {
+      emitNewMessage: jest.fn(),
+    } as unknown as jest.Mocked<RealtimeGateway>;
+
+    messagesService = new MessagesService(messagesRepository, realtimeGateway);
   });
 
   it('blocks send when not a member', async () => {

@@ -1,13 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  API_BASE_URL,
-  getMyProfile,
-  updateMyProfile,
-  uploadAvatar,
-} from '../services/users';
+import { getMyProfile, updateMyProfile, uploadAvatar } from '../services/users';
 import type { UserProfile } from '../services/users';
 import { clearAuthToken } from '../utils/auth';
+import { API_BASE_URL } from '../services/api';
 
 const stats = [
   { label: 'Enviados', value: 142 },
