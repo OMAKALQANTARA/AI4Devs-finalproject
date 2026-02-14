@@ -59,6 +59,33 @@ ok ahora genera en formato markdown para incluirlo en el readme.md el texto fina
 ok ahora definamos el tech stack a usar, quiero mantenerlo con tecnología que sea de rápida adopción, mi stack técnico es de desarrollador web en javascript, HTML, CSS, bootstrap, jquery, java, spring framework, Mysql, no tengo problema en crear este sistema con la tecnología que mejor se adapte y que requiera menor coste de infraestructura, ya que todo el proyecto lo pienso generar con agentes de IA. Así que decidamos que usar en cada uno de los componentes
 
 **Prompt 3:**
+Creado con Lovable
+Diseña una aplicación web movil de mensajería instantánea que transforma la comunicación cotidiana en experiencias interactivas y memorables mediante un sistema de condiciones personalizables para visualizar contenido.
+A diferencia de las apps tradicionales donde los mensajes se entregan y leen inmediatamente, esta plataforma permite al remitente establecer requisitos específicos que el destinatario debe cumplir para acceder al contenido: resolver acertijos, esperar hasta una fecha determinada, ingresar contraseñas, usar autenticación biométrica o completar desafíos personalizados.
+
+Diferenciadores
+* Gamificación de la comunicación privada
+* Convierte mensajes ordinarios en experiencias participativas que generan anticipación, curiosidad y entretenimiento.
+* Momentos memorables y personalizados, permite crear comunicaciones que van más allá del texto plano: invitaciones sorpresa que se revelan en el momento exacto del evento, confesiones románticas protegidas por acertijos significativos, regalos digitales con desafíos divertidos, o cápsulas del tiempo que se abren en fechas futuras importantes.
+* Control creativo sobre la privacidad, ofrece capas adicionales de privacidad más allá del cifrado tradicional, donde el remitente decide exactamente cuándo, cómo y bajo qué circunstancias su contenido será accesible. Combina seguridad técnica con creatividad personal.
+* Diferenciación del ruido digital, en un ecosistema saturado de notificaciones instantáneas y mensajes efímeros, esta app crea comunicaciones que demandan atención intencional y generan valor emocional duradero, contrastando con el consumo pasivo de mensajería masiva.
+
+Pantalla - Autenticación y perfiles
+- Registro con email y contraseña.
+- Perfil de usuario con nombre y foto.
+- Gestión de contactos importados desde la agenda del teléfono.
+- Estados de presencia: en linea, fuera de linea.
+- Sistema de bloqueo y reporte de usuarios para seguridad básica.
+
+Pantalla - Mensajería básica
+- Chat 1‑a‑1 en tiempo real.
+- Envío de mensajes de texto enriquecido.
+- Soporte multimedia: imágenes, mensajes de voz y videos cortos.
+- Indicadores de estado: enviado, entregado, desifrando, intentos, revelado.
+- Notificaciones push para mensajes nuevos.
+- Chats grupales hasta 5 participantes (primera etapa).
+
+Como salida no me interesa el codigo, solo el diseño y la navegabilidad.
 
 ### **2.3. Descripción de alto nivel del proyecto y estructura de ficheros**
 
@@ -75,8 +102,10 @@ tomando en cuenta este stack tecnologico, ahora pasemos al punto 2.3 > Represent
 ahora procedamos con el punto 2.4 Detalla la infraestructura del proyecto, incluyendo un diagrama en el formato mermaid, y explica el proceso de despliegue que se sigue
 
 **Prompt 2:**
+now that we have integrated the frontend to docker, update the @readme.md in its "Proceso de despliegue" point 2.4 
 
 **Prompt 3:**
+
 
 ### **2.5. Seguridad**
 
@@ -95,8 +124,10 @@ pasemos al punto 2.5 y enumera y describe las prácticas de seguridad principale
 pasemos al punto 2.6 y definamos una estrategia de testing para poder tener una suite de pruebas y al final requeriré realizar pruebas E2E, proporcioname la salida en formato markdown
 
 **Prompt 2:**
+testing requirements are specified on each task of the project, so include it as part of the execution plan.
 
 **Prompt 3:**
+yes proceed to execute the unit testing, and e2e testing
 
 ---
 
@@ -109,6 +140,7 @@ Como experto diseñador de bases de datos, pasemos ahora a realizar el apartado 
 3. Sigue las mejores practicas para el tipo de base de datos que se requiere.
 
 **Prompt 2:**
+migrations requirements are specified on each task of the project, execute them as part of the plan.
 
 **Prompt 3:**
 
@@ -163,6 +195,7 @@ como experto en producto de software, comencemos por realizar el plan que incluy
 ahora procede a actualizar el @readme.md en su sección 6, solo toma 3 ejemplos de tickets ya generados, 1 de backend, 1 de frontend y 1 que incluya base de datos. 
 
 **Prompt 2:**
+Migrate al the backlog to the git project https://github.com/users/OMAKALQANTARA/projects/2/views/1.
 
 **Prompt 3:**
 

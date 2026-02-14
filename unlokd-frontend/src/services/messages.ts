@@ -16,7 +16,7 @@ export type MessagesResponse = {
   nextCursor: number | null;
 };
 
-const getAuthHeaders = () => {
+const getAuthHeaders = (): HeadersInit => {
   const token = localStorage.getItem('authToken');
   return token ? { Authorization: `Bearer ${token}` } : {};
 };

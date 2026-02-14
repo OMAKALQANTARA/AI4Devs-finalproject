@@ -400,10 +400,11 @@ La infraestructura de UNLOKD está pensada para minimizar costes y complejidad, 
 A alto nivel, la infraestructura se compone de:
 
 - **Cliente**  
-  - App web (SPA) y/o app móvil que se conectan al backend vía HTTPS y WebSocket seguro (WSS).
+  - App web (SPA) servida desde un contenedor Docker (build Vite + Nginx) y/o app móvil, que se conectan al backend vía HTTPS y WebSocket seguro (WSS).
 
 - **Capa de aplicación**  
-  - Contenedor Docker con el backend Node.js/NestJS (API REST + WebSocket gateway + módulos de dominio).
+  - Contenedor Docker con el **frontend** (SPA construida con Vite y servida con Nginx).
+  - Contenedor Docker con el **backend** Node.js/NestJS (API REST + WebSocket gateway + módulos de dominio).
   - Workers de notificaciones y multimedia que comparten el mismo código base pero se ejecutan como procesos separados.
 
 - **Servicios de soporte**  
@@ -419,24 +420,27 @@ A alto nivel, la infraestructura se compone de:
 
 Guía paso a paso para levantar el sistema en una instancia nueva usando Docker.
 
+**Despliegue en AWS (Amazon Linux 2023):** para una guía específica de configuración en una instancia EC2 con Amazon Linux 2023 (conexión SSH, puertos, Docker, variables y verificación), ver **[Guía de setup en AWS](documentation/aws-setup-guide.md)**.
+
 1. **Crear y preparar el servidor**  
    - Provisiona un VPS con Ubuntu 22.04 LTS.  
-   - Abre puertos en el firewall: `22`, `80`, `443` (y `3000` si expondrás la API sin proxy).  
+   - Abre puertos en el firewall: `22`, `80`, `443` (y `3000`/`5173` si expondrás API o frontend directamente sin proxy).  
    - Instala Docker y Docker Compose:  
      - `sudo apt update && sudo apt install -y docker.io docker-compose-plugin`  
      - `sudo usermod -aG docker $USER` y vuelve a iniciar sesión.
 
 2. **Copiar el proyecto al servidor**  
-   - Clona el repositorio en el VPS:  
-     - `git clone <URL_DEL_REPO> unlokd && cd unlokd`
+   - Clona el repositorio en el VPS (el `docker-compose.yml` está en `unlokd-backend/` y referencia el frontend en `unlokd-frontend/`):  
+     - `git clone <URL_DEL_REPO> unlokd && cd unlokd/unlokd-backend`
 
 3. **Configurar variables de entorno**  
    - Crea archivos `.env` para backend y servicios según tu `docker-compose.yml`.  
-   - Variables típicas:  
-     - `DATABASE_URL`, `JWT_SECRET`, `REDIS_URL`, `NODE_ENV=production`, `CORS_ORIGIN`.
+   - Variables típicas del **backend**: `DATABASE_URL`, `JWT_SECRET`, `REDIS_URL`, `NODE_ENV=production`, `CORS_ORIGIN`.  
+   - Para el **frontend** (build args en Docker): `VITE_API_BASE_URL` y `VITE_WS_BASE_URL` con la URL pública del API y del WebSocket (por ejemplo `https://api.tudominio.com`). Ajusta estos valores en `docker-compose.yml` bajo `frontend.build.args` o mediante variables de entorno en el pipeline de despliegue.
 
 4. **Construir y levantar contenedores**  
-   - Ejecuta: `docker compose up -d --build`  
+   - Desde `unlokd-backend/` ejecuta: `docker compose up -d --build`  
+   - Se levantan los contenedores de **frontend** (puerto 5173 por defecto, Nginx sirviendo la SPA), **backend** (puerto 3000), MySQL y Redis.  
    - Verifica estado: `docker compose ps`
 
 5. **Ejecutar migraciones y seed (si aplica)**  
@@ -447,7 +451,7 @@ Guía paso a paso para levantar el sistema en una instancia nueva usando Docker.
 6. **Configurar dominio y HTTPS**  
    - Apunta el DNS del dominio al IP del VPS.  
    - Configura un reverse proxy (Nginx/Traefik) con TLS de Let’s Encrypt.  
-   - Reenvía tráfico a los contenedores (frontend/backedn) según corresponda.
+   - Reenvía el tráfico web (/) al contenedor **frontend** (puerto 5173 o el que expongas) y el tráfico de API/WebSocket (/api, /health, socket) al contenedor **backend** (puerto 3000).
 
 7. **Verificación final**  
    - Comprueba que la API responde: `GET /health` o `GET /api/v1/users/me` con token.  
