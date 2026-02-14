@@ -66,6 +66,19 @@ sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
 ```
 
+**Docker Buildx (requerido para `docker compose build`)**  
+Si al ejecutar `docker compose ... up --build` aparece *"compose build requires buildx 0.17.0 or later"*, instala el plugin Buildx:
+
+```bash
+BUILDX_VERSION="v0.31.1"
+ARCH=$(uname -m)
+[ "$ARCH" = "x86_64" ] && BUILDX_ARCH="amd64" || BUILDX_ARCH="arm64"
+sudo mkdir -p /usr/local/lib/docker/cli-plugins
+sudo curl -L "https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-${BUILDX_ARCH}" -o /usr/local/lib/docker/cli-plugins/docker-buildx
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
+docker buildx version
+```
+
 Cierra sesión y vuelve a conectar para que el grupo `docker` se aplique, o en la misma sesión:
 
 ```bash
@@ -120,32 +133,50 @@ Si cambias de host (otra EC2 o dominio), edita `docker-compose.prod.yml` y actua
 
 ## 6. Construir y levantar contenedores
 
-Desde `unlokd-backend/` usa el override de producción (URL y CORS ya vienen en `docker-compose.prod.yml`):
+Desde `unlokd-backend/` usa el override de producción (URL y CORS ya vienen en `docker-compose.prod.yml`). Si aparece *"compose build requires buildx 0.17.0 or later"*, instala Buildx (sección 3).
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
-Verifica que todo esté en ejecución:
+Verifica que todo esté en ejecución (usa los mismos `-f` que en el `up`):
 
 ```bash
-docker compose ps
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps -a
 ```
 
-Deberías ver: `backend`, `frontend`, `mysql`, `redis` en estado **Up**.
+Deberías ver: `backend`, `frontend`, `mysql`, `redis` en estado **Up**. Si **backend** no aparece o sale como **Exited**:
+
+- Ver los logs del backend:  
+  `docker compose -f docker-compose.yml -f docker-compose.prod.yml logs backend`
+- Suele deberse a que la base de datos aún no está lista o faltan migraciones. Espera unos segundos y vuelve a levantar solo el backend:  
+  `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d backend`  
+  o ejecuta antes las migraciones (sección 7) y luego `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d backend`.
 
 ---
 
 ## 7. Ejecutar migraciones de base de datos
 
+El backend se conecta a MySQL por el puerto **3306** (correcto): dentro de la red Docker el servicio `mysql` escucha en 3306. El **3307** del `docker-compose.yml` es solo el puerto en el *host* para acceder a MySQL desde fuera; no hace falta usarlo en `DATABASE_URL`.
+
+Si al ejecutar `migrate deploy` sale *"No migration found in prisma/migrations"* y *"No pending migrations to apply"*, suele ser porque la imagen del backend se construyó sin la carpeta de migraciones (o con una versión antigua del repo). Usa la carpeta del host montando un volumen:
+
 ```bash
-docker compose exec backend npx prisma migrate deploy
+cd ~/AI4Devs-finalproject/unlokd-backend
+# o, si estás en root: cd /root/AI4Devs-finalproject/unlokd-backend
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml run --rm -v "$(pwd)/prisma:/app/prisma" backend npx prisma migrate deploy
+```
+
+Ese comando usa el `prisma/migrations` de tu servidor (donde clonaste el repo), se conecta a la base del stack y aplica las migraciones. Si prefieres que la imagen lleve las migraciones, tras un `git pull` vuelve a construir la imagen del backend y luego ejecuta el comando normal:
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec backend npx prisma migrate deploy
 ```
 
 (Opcional) Si tienes seeds para datos de prueba:
 
 ```bash
-docker compose exec backend npx prisma db seed
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec backend npx prisma db seed
 ```
 
 ---
@@ -219,6 +250,8 @@ cd unlokd-backend
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 docker compose -f docker-compose.yml -f docker-compose.prod.yml exec backend npx prisma migrate deploy
 ```
+
+Si no tienes Buildx instalado, ver sección 3.
 
 ---
 
