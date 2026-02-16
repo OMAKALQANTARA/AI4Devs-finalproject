@@ -123,6 +123,7 @@ cd ~/AI4Devs-finalproject/unlokd-backend
 npm ci
 npx prisma migrate deploy
 npm run build
+ls -la dist
 ```
 
 Si aparece `No migration found in prisma/migrations`, el servidor no tiene los archivos SQL de migracion en `unlokd-backend/prisma/migrations/**/migration.sql`.
@@ -134,9 +135,18 @@ Si aparece `No migration found in prisma/migrations`, el servidor no tiene los a
 Levanta backend con PM2:
 
 ```bash
-pm2 start dist/main.js --name unlokd-backend
+pm2 start npm --name unlokd-backend -- run start:prod
 pm2 save
 pm2 status
+```
+
+Si PM2 muestra `script not found`, normalmente `dist/` no existe porque el build no se genero o fallo.
+Repite:
+
+```bash
+npm run build
+ls -la dist
+pm2 start npm --name unlokd-backend -- run start:prod
 ```
 
 Para autoarranque tras reboot:
