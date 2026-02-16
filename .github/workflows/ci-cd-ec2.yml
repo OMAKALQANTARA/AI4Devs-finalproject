@@ -283,16 +283,16 @@ jobs:
 
             # Bootstrap .env on first deploy if missing or incomplete.
             if [ -z "${DATABASE_URL:-}" ]; then
-              cat > "$BACKEND_DIR/.env" <<'EOF'
-NODE_ENV=production
-PORT=3000
-DATABASE_URL=mysql://root:unlokd2025@127.0.0.1:3307/unlokd_db
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-JWT_SECRET=change-me-in-production
-JWT_EXPIRATION=24h
-CORS_ORIGIN=http://${{ steps.resolve_host.outputs.ec2_host }}
-EOF
+              printf '%s\n' \
+                "NODE_ENV=production" \
+                "PORT=3000" \
+                "DATABASE_URL=mysql://root:unlokd2025@127.0.0.1:3307/unlokd_db" \
+                "REDIS_HOST=127.0.0.1" \
+                "REDIS_PORT=6379" \
+                "JWT_SECRET=change-me-in-production" \
+                "JWT_EXPIRATION=24h" \
+                "CORS_ORIGIN=http://${{ steps.resolve_host.outputs.ec2_host }}" \
+                > "$BACKEND_DIR/.env"
               set -a
               . "$BACKEND_DIR/.env"
               set +a
