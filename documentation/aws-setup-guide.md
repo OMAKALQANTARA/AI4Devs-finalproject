@@ -125,6 +125,12 @@ npx prisma migrate deploy
 npm run build
 ```
 
+Si aparece `No migration found in prisma/migrations`, el servidor no tiene los archivos SQL de migracion en `unlokd-backend/prisma/migrations/**/migration.sql`.
+
+- Verifica que el repositorio ya incluya esos archivos (haz `git pull` despues de publicar el fix de `.gitignore` y los archivos de migracion).
+- Como salida temporal para bootstrap en una instancia nueva, puedes ejecutar:
+  - `npx prisma db push`
+
 Levanta backend con PM2:
 
 ```bash
