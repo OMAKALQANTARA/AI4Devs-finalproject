@@ -105,7 +105,8 @@ ahora procedamos con el punto 2.4 Detalla la infraestructura del proyecto, inclu
 now that we have integrated the frontend to docker, update the @readme.md in its "Proceso de despliegue" point 2.4 
 
 **Prompt 3:**
-
+definitely the load of docker is too much for the EC2 instance and it is loading extremely slow... what do you think about separating backend and frontend from docker and deploy them separatelly ?
+let's separate Backend and Frontend from docker first and update the @documentation/aws-setup-guide.md and @readme.md  accordingly in "Proceso de despliegue"
 
 ### **2.5. Seguridad**
 
@@ -204,7 +205,28 @@ Migrate al the backlog to the git project https://github.com/users/OMAKALQANTARA
 ### 7. Pull Requests
 
 **Prompt 1:**
+deploy is working fine now.
+Next task
+Let's build in CI only with github actions.
+So create the pipeline in .github/workflows/ with the next workflow:
+1. Build backend
+2. Run tests for backed
+3. Build frontend 
+4. Run e2e tests
+5. Deploy the project to the EC2 Instance at AWS 
+6. Report summary results
+
+Consider the EC2 Instance is a linux system.
+Github secrects repository is in place with these variables 
+AWS_ACCESS_ID
+AWS_ACCESS_KEY
+AWS_REGION
+EC2_INSTANCE
+EC2_USER
+EC2_SSH_PRIVATE_KEY
 
 **Prompt 2:**
+take a look at the file again since it is wrong  "(Line: 312, Col: 1): 'name' is already defined, (Line: 314, Col: 1): 'on' is already defined, (Line: 321, Col: 1): 'permissions' is already defined, (Line: 324, Col: 1): 'jobs' is already defined"
 
 **Prompt 3:**
+Remote deploy is the one failing now, fixing it by ensuring env variables are always reachable... "err: Failed to load config file "/home/***/..."

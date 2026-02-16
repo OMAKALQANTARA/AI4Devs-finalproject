@@ -24,6 +24,7 @@ Aplicación de Mensajería Condicionada
 Aplicación de mensajería instantánea que permite compartir contenido de texto y multimedia bajo condiciones personalizables de visualización, con foco en privacidad recreativa, anticipación y entretenimiento.
 
 ### **0.4. URL del proyecto:**
+http://ec2-18-225-156-92.us-east-2.compute.amazonaws.com
 
 ### 0.5. URL o archivo comprimido del repositorio
 
@@ -172,11 +173,37 @@ Condiciones básicas:
 
 
 ### **1.3. Diseño y experiencia de usuario:**
+UNLOKD ACCESS [http://ec2-18-225-156-92.us-east-2.compute.amazonaws.com]
 
-> Proporciona imágenes y/o videotutorial mostrando la experiencia del usuario desde que aterriza en la aplicación, pasando por todas las funcionalidades principales.
+#### Pantallas Principales (Diseño Final Frontend)
+
+- **Pantalla de Login**
+  
+  ![Pantalla de Login](documentation/frontend-design/final-screens/01%20-%20Login.jpg)
+
+- **Pantalla de Registro**
+  
+  ![Pantalla de Registro](documentation/frontend-design/final-screens/02%20-%20Signup.jpg)
+
+  **Pantalla de Perfil**
+  
+  ![Pantalla de Perfil](documentation/frontend-design/final-screens/03%20-%20Profile.jpg)
+
+  **Pantalla de Contactos**
+  
+  ![Pantalla de Contactos](documentation/frontend-design/final-screens/04%20-%20Contacts.jpg)
+
+  **Pantalla de Chats**
+  
+  ![Pantalla de Chats](documentation/frontend-design/final-screens/05%20-%20Chats.jpg)
+  
+  **Pantalla de Chat**
+  
+  ![Pantalla de Chat](documentation/frontend-design/final-screens/06%20-%20Chat.jpg)
+
 
 ### **1.4. Instrucciones de instalación:**
-> Documenta de manera precisa las instrucciones para instalar y poner en marcha el proyecto en local (librerías, backend, frontend, servidor, base de datos, migraciones y semillas de datos, etc.)
+Referencia a "Arquitectura del sistema > Proceso de despliegue"
 
 ---
 
@@ -1634,10 +1661,13 @@ Crear el esquema Prisma completo para las tablas USERS y CONTACTS, generar las m
 > Documenta 3 de las Pull Requests realizadas durante la ejecución del proyecto
 
 **Pull Request 1**
+Adding CI pipeline to github actions [https://github.com/OMAKALQANTARA/AI4Devs-finalproject/actions/runs/22048781826]
 
 **Pull Request 2**
+Fixing pipeline [https://github.com/OMAKALQANTARA/AI4Devs-finalproject/actions/runs/22049431577]
 
 **Pull Request 3**
+Testing pipeline build and deploy [https://github.com/OMAKALQANTARA/AI4Devs-finalproject/actions/runs/22049506088]
 
 ---
 
