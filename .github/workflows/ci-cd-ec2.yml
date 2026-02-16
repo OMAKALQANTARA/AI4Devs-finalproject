@@ -273,6 +273,31 @@ jobs:
             cp -R /tmp/unlokd-release-backend/* "$BACKEND_DIR/"
             cd "$BACKEND_DIR"
             npm ci --omit=dev
+
+            # Load existing env if present. Prisma config requires DATABASE_URL at runtime.
+            if [ -f "$BACKEND_DIR/.env" ]; then
+              set -a
+              . "$BACKEND_DIR/.env"
+              set +a
+            fi
+
+            # Bootstrap .env on first deploy if missing or incomplete.
+            if [ -z "${DATABASE_URL:-}" ]; then
+              cat > "$BACKEND_DIR/.env" <<'EOF'
+NODE_ENV=production
+PORT=3000
+DATABASE_URL=mysql://root:unlokd2025@127.0.0.1:3307/unlokd_db
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+JWT_SECRET=change-me-in-production
+JWT_EXPIRATION=24h
+CORS_ORIGIN=http://${{ steps.resolve_host.outputs.ec2_host }}
+EOF
+              set -a
+              . "$BACKEND_DIR/.env"
+              set +a
+            fi
+
             npx prisma migrate deploy || npx prisma db push
 
             pm2 delete unlokd-backend || true
