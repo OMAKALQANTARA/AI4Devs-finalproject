@@ -98,7 +98,7 @@ export function AuthPage() {
         <div className="auth-logo">
           <span className="auth-logo__icon">🔒</span>
         </div>
-        <h1 className="auth-title">UNLOKD</h1>
+        <h1 className="auth-title">UNLOKD TEST</h1>
         <p className="auth-subtitle">Mensajes que se merecen</p>
       </div>
 
