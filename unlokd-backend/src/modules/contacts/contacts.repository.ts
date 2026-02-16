@@ -36,7 +36,7 @@ export class ContactsRepository {
       ORDER BY u.display_name ASC
     `;
 
-    return rows.map((row) => this.mapContact(row));
+    return rows.map((row: DbContact) => this.mapContact(row));
   }
 
   async getContactByUser(

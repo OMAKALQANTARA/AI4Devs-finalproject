@@ -8,6 +8,17 @@ import {
 import { MessageDto } from './dto/message.dto';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
 
+type MessageRow = {
+  id: number;
+  chat_id: number;
+  sender_id: number;
+  content_type: MessageContentType;
+  content_text: string | null;
+  visibility_type: MessageVisibilityType;
+  status: 'UNLOCKED' | 'PENDING';
+  created_at: Date;
+};
+
 @Injectable()
 export class MessagesService {
   constructor(
@@ -51,7 +62,7 @@ export class MessagesService {
     const rows = await this.messagesRepository.getMessages(chatId, before, limit);
     await this.messagesRepository.updateLastReadAt(chatId, userId);
 
-    const messages = rows.map((row) => this.mapMessage(row));
+    const messages = rows.map((row: MessageRow) => this.mapMessage(row));
     const nextCursor = rows.length === limit ? rows[rows.length - 1].id : null;
 
     return { messages, nextCursor };

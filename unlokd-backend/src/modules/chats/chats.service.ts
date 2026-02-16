@@ -4,6 +4,24 @@ import { ChatsRepository } from './chats.repository';
 import { ChatDto } from './dto/chat.dto';
 import { UsersRepository } from '../users/users.repository';
 
+type ChatRow = {
+  id: number;
+  public_id: string;
+  type: 'DIRECT' | 'GROUP';
+  title: string | null;
+  created_by: number;
+  created_at: Date;
+  peer_display_name?: string | null;
+};
+
+type ChatMemberRow = {
+  user_id: number;
+  role: 'OWNER' | 'MEMBER';
+  display_name: string;
+  presence_status: string | null;
+  avatar_url: string | null;
+};
+
 @Injectable()
 export class ChatsService {
   constructor(
@@ -33,7 +51,7 @@ export class ChatsService {
 
   async getChatsByUserId(userId: number): Promise<ChatDto[]> {
     const chats = await this.chatsRepository.getChatsByUserId(userId);
-    return chats.map((chat) => this.mapChat(chat, chat.peer_display_name ?? null));
+    return chats.map((chat: ChatRow) => this.mapChat(chat, chat.peer_display_name ?? null));
   }
 
   async getChatDetails(chatId: number, userId: number): Promise<ChatDto> {
@@ -50,12 +68,12 @@ export class ChatsService {
     const members = await this.chatsRepository.getMembers(chatId);
     const directTitle =
       chat.type === 'DIRECT'
-        ? members.find((member) => Number(member.user_id) !== userId)
+        ? members.find((member: ChatMemberRow) => Number(member.user_id) !== userId)
             ?.display_name ?? null
         : chat.title;
     return {
       ...this.mapChat(chat, directTitle),
-      members: members.map((member) => ({
+      members: members.map((member: ChatMemberRow) => ({
         userId: Number(member.user_id),
         role: member.role,
         displayName: member.display_name,
