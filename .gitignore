@@ -40,3 +40,4 @@ npm-debug.log*
 
 # Prisma
 prisma/.env
+!unlokd-backend/prisma/migrations/**/*.sql
